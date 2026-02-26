@@ -196,4 +196,4 @@ void main () {
 
 ## License
 
-This project is unlicensed. libsecp256k1 is distributed under the MIT license.
+MIT License. See [LICENSE](LICENSE) for details. libsecp256k1 is distributed under the MIT license.
