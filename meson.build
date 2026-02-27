@@ -20,7 +20,33 @@ valanostr_lib = library('valanostr',
   'src/nostr.vala',
   dependencies: common_deps,
   vala_args: common_vala_args,
+  vala_header: 'valanostr.h',
+  vala_vapi: 'valanostr.vapi',
   include_directories: secp256k1_inc,
+  install: true,
+  install_dir: [
+    get_option('libdir'),
+    get_option('includedir') / 'valanostr',
+    get_option('datadir') / 'vala' / 'vapi',
+  ],
+)
+
+# pkg-config file for dependency('valanostr') in consumer projects
+pkg = import('pkgconfig')
+pkg.generate(valanostr_lib,
+  name: 'valanostr',
+  description: 'Nostr protocol library for Vala',
+  requires: [glib_dep, gobject_dep, json_glib_dep],
+  subdirs: ['valanostr'],
+  # secp256k1 is statically linked into libvalanostr, so consumers don't need it
+  libraries_private: [],
+)
+
+# Meson subproject dependency (for wrap/subproject usage)
+valanostr_dep = declare_dependency(
+  link_with: valanostr_lib,
+  include_directories: include_directories('.'),
+  dependencies: [glib_dep, gobject_dep, json_glib_dep],
 )
 
 test_exe = executable('test_nostr',

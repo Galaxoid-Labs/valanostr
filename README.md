@@ -194,6 +194,34 @@ void main () {
 }
 ```
 
+## Using in Another Project
+
+### System install
+
+```bash
+cd valanostr
+meson setup build
+meson compile -C build
+sudo meson install -C build
+```
+
+Then in your project's `meson.build`:
+
+```meson
+valanostr_dep = dependency('valanostr')
+executable('myapp', 'main.vala', dependencies: [valanostr_dep])
+```
+
+### Meson subproject
+
+Place valanostr in your project's `subprojects/valanostr/` directory (or use a [wrap file](https://mesonbuild.com/Wrap-dependency-system-manual.html)), then in your `meson.build`:
+
+```meson
+valanostr_proj = subproject('valanostr')
+valanostr_dep = valanostr_proj.get_variable('valanostr_dep')
+executable('myapp', 'main.vala', dependencies: [valanostr_dep])
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details. libsecp256k1 is distributed under the MIT license.
