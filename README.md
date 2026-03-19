@@ -1,5 +1,7 @@
 # ValaNostr
 
+[![CI](https://github.com/Galaxoid-Labs/valanostr/actions/workflows/ci.yml/badge.svg)](https://github.com/Galaxoid-Labs/valanostr/actions/workflows/ci.yml)
+
 A Vala library implementing the [Nostr](https://nostr.com/) protocol's core functionality ([NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md)): key generation, event creation, event signing, event verification, and JSON serialization.
 
 Wraps [libsecp256k1](https://github.com/bitcoin-core/secp256k1) via custom VAPI bindings for BIP-340 Schnorr signature operations.
