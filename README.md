@@ -9,10 +9,18 @@ Wraps [libsecp256k1](https://github.com/bitcoin-core/secp256k1) via custom VAPI 
 ## Quick Start
 
 ```bash
+git clone --recursive https://github.com/jdavis/valanostr.git
+cd valanostr
 ./check_deps.sh            # verify all dependencies are installed
 meson setup build
 meson compile -C build
 meson test -C build
+```
+
+If you already cloned without `--recursive`, initialize the submodule:
+
+```bash
+git submodule update --init
 ```
 
 ## Prerequisites
@@ -23,7 +31,7 @@ meson test -C build
 - **pkg-config**
 - **GLib 2.0**, **GObject 2.0**, **Json-GLib 1.0** (development packages)
 
-The static `libsecp256k1` library and headers are included in `lib/`.
+`libsecp256k1` is included as a git submodule and built from source automatically.
 
 ### Check dependencies
 
@@ -84,15 +92,8 @@ valanostr/
   check_deps.sh                 # Dependency checker script
   vapi/
     secp256k1.vapi              # VAPI bindings for libsecp256k1
-  lib/
-    aarch64/
-      libsecp256k1.a            # Static library — arm64
-    x86_64/
-      libsecp256k1.a            # Static library — x86_64
-    include/
-      secp256k1.h               # Headers (arch-independent)
-      secp256k1_extrakeys.h
-      secp256k1_schnorrsig.h
+  deps/
+    secp256k1/                  # git submodule (bitcoin-core/secp256k1)
   src/
     nostr.vala                  # Library source (Nostr namespace)
   tests/

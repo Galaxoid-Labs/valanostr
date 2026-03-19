@@ -38,13 +38,13 @@ check_pkg() {
     fi
 }
 
-check_file() {
-    local filepath="$1"
-    local label="${2:-$(basename "$filepath")}"
-    if [[ -f "$filepath" ]]; then
-        printf "  ${GREEN}OK${NC}  %-14s %s\n" "$label" "$filepath"
+check_dir() {
+    local dirpath="$1"
+    local label="${2:-$(basename "$dirpath")}"
+    if [[ -d "$dirpath" ]] && [[ -n "$(ls -A "$dirpath" 2>/dev/null)" ]]; then
+        printf "  ${GREEN}OK${NC}  %-14s %s\n" "$label" "$dirpath"
     else
-        printf "  ${RED}MISSING${NC}  %s\n" "$filepath"
+        printf "  ${RED}MISSING${NC}  %s  (run: git submodule update --init)\n" "$label"
         missing=1
     fi
 }
@@ -106,18 +106,8 @@ check_pkg gobject-2.0
 check_pkg json-glib-1.0
 
 echo ""
-ARCH=$(uname -m)
-# Map uname output to meson cpu_family names
-case "$ARCH" in
-    x86_64)  ARCH_DIR="x86_64" ;;
-    aarch64) ARCH_DIR="aarch64" ;;
-    *)       ARCH_DIR="$ARCH" ;;
-esac
-printf "${BOLD}Bundled libsecp256k1 (${ARCH_DIR}):${NC}\n"
-check_file "lib/${ARCH_DIR}/libsecp256k1.a" "libsecp256k1.a"
-check_file lib/include/secp256k1.h "secp256k1.h"
-check_file lib/include/secp256k1_extrakeys.h "secp256k1_extrakeys.h"
-check_file lib/include/secp256k1_schnorrsig.h "secp256k1_schnorrsig.h"
+printf "${BOLD}Git submodules:${NC}\n"
+check_dir "deps/secp256k1/src" "libsecp256k1"
 
 echo ""
 
