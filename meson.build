@@ -37,6 +37,7 @@ common_vala_args = ['--vapidir=' + meson.project_source_root() / 'vapi', '--pkg=
 
 valanostr_lib = library('valanostr',
   'src/nostr.vala',
+  'src/nip19.vala',
   dependencies: common_deps,
   vala_args: common_vala_args,
   vala_header: 'valanostr.h',
@@ -70,6 +71,7 @@ valanostr_dep = declare_dependency(
 test_exe = executable('test_nostr',
   'tests/test_nostr.vala',
   'src/nostr.vala',
+  'src/nip19.vala',
   dependencies: common_deps,
   vala_args: common_vala_args,
 )

@@ -8,6 +8,15 @@ void main (string[] args) {
     Test.add_func ("/nostr/event/json_roundtrip", test_event_json_roundtrip);
     Test.add_func ("/nostr/event/id_computation", test_event_id_computation);
 
+    Test.add_func ("/nostr/nip19/npub_encode", test_npub_encode);
+    Test.add_func ("/nostr/nip19/npub_decode", test_npub_decode);
+    Test.add_func ("/nostr/nip19/nsec_roundtrip", test_nsec_roundtrip);
+    Test.add_func ("/nostr/nip19/note_roundtrip", test_note_roundtrip);
+    Test.add_func ("/nostr/nip19/nprofile_decode", test_nprofile_decode);
+    Test.add_func ("/nostr/nip19/nprofile_roundtrip", test_nprofile_roundtrip);
+    Test.add_func ("/nostr/nip19/nevent_roundtrip", test_nevent_roundtrip);
+    Test.add_func ("/nostr/nip19/naddr_roundtrip", test_naddr_roundtrip);
+
     Test.run ();
 }
 
@@ -115,6 +124,132 @@ void test_event_json_roundtrip () {
 
         // Re-parsed event should still verify
         assert (ev2.verify ());
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+// ── NIP-19 tests ────────────────────────────────────────────
+
+void test_npub_encode () {
+    // NIP-19 spec test vector
+    var hex = "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e";
+    var expected = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg";
+    assert (Nostr.encode_npub (hex) == expected);
+}
+
+void test_npub_decode () {
+    // NIP-19 spec test vector
+    var npub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg";
+    var expected = "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e";
+    try {
+        assert (Nostr.decode_npub (npub) == expected);
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_nsec_roundtrip () {
+    // NIP-19 spec test vector
+    var hex = "67dea2ed018072d675f5415ecfaed7d2597555e202d85b3d65ea4e58d2d92ffa";
+    var expected_nsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5";
+    var encoded = Nostr.encode_nsec (hex);
+    assert (encoded == expected_nsec);
+
+    try {
+        var decoded = Nostr.decode_nsec (encoded);
+        assert (decoded == hex);
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_note_roundtrip () {
+    var hex = "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d";
+    var encoded = Nostr.encode_note (hex);
+    assert (encoded.has_prefix ("note1"));
+
+    try {
+        var decoded = Nostr.decode_note (encoded);
+        assert (decoded == hex);
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_nprofile_decode () {
+    // NIP-19 spec test vector
+    var nprofile = "nprofile1qqsrhuxx8l9ex335q7he0f09aej04zpazpl0ne2cgukyawd24mayt8gpp4mhxue69uhhytnc9e3k7mgpz4mhxue69uhkg6nzv9ejuumpv34kytnrdaksjlyr9p";
+    try {
+        var result = Nostr.decode_nprofile (nprofile);
+        assert (result.pubkey == "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d");
+        assert (result.relays.length == 2);
+        assert (result.relays[0] == "wss://r.x.com");
+        assert (result.relays[1] == "wss://djbas.sadkb.com");
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_nprofile_roundtrip () {
+    var pubkey = "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d";
+    string[] relays = { "wss://relay.example.com", "wss://relay2.example.com" };
+
+    var encoded = Nostr.encode_nprofile (pubkey, relays);
+    assert (encoded.has_prefix ("nprofile1"));
+
+    try {
+        var decoded = Nostr.decode_nprofile (encoded);
+        assert (decoded.pubkey == pubkey);
+        assert (decoded.relays.length == 2);
+        assert (decoded.relays[0] == "wss://relay.example.com");
+        assert (decoded.relays[1] == "wss://relay2.example.com");
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_nevent_roundtrip () {
+    var event_id = "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d";
+    var author = "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e";
+    string[] relays = { "wss://relay.example.com" };
+
+    var encoded = Nostr.encode_nevent (event_id, relays, author, 1);
+    assert (encoded.has_prefix ("nevent1"));
+
+    try {
+        var decoded = Nostr.decode_nevent (encoded);
+        assert (decoded.id == event_id);
+        assert (decoded.relays.length == 1);
+        assert (decoded.relays[0] == "wss://relay.example.com");
+        assert (decoded.author == author);
+        assert (decoded.kind == 1);
+    } catch (Error e) {
+        Test.message ("Unexpected error: %s", e.message);
+        assert_not_reached ();
+    }
+}
+
+void test_naddr_roundtrip () {
+    var pubkey = "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d";
+    string[] relays = { "wss://relay.example.com" };
+
+    var encoded = Nostr.encode_naddr ("my-article", pubkey, 30023, relays);
+    assert (encoded.has_prefix ("naddr1"));
+
+    try {
+        var decoded = Nostr.decode_naddr (encoded);
+        assert (decoded.identifier == "my-article");
+        assert (decoded.pubkey == pubkey);
+        assert (decoded.kind == 30023);
+        assert (decoded.relays.length == 1);
+        assert (decoded.relays[0] == "wss://relay.example.com");
     } catch (Error e) {
         Test.message ("Unexpected error: %s", e.message);
         assert_not_reached ();
